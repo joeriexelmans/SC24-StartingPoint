@@ -1,0 +1,20 @@
+GeneratorModel for yakindu::python {
+
+	const PROJECT : string = "StartingPoint"
+	const FOLDER : string = "srcgen"
+
+	statechart LockController {
+		feature Outlet {
+			targetProject = PROJECT
+			targetFolder = FOLDER
+			libraryTargetFolder = "lib"
+		}
+	}
+	statechart WaterLevelSimulator {
+		feature Outlet {
+			targetProject = PROJECT
+			targetFolder = FOLDER
+			libraryTargetFolder = "lib"
+		}
+	}
+}

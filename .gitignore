@@ -1,0 +1,8 @@
+StartingPoint/srcgen/solution.py
+StartingPoint/Solution.ysc
+
+# python
+__pycache__/
+
+# eclipse thing
+.metadata
