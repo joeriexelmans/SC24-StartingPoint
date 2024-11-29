@@ -3,6 +3,48 @@ GeneratorModel for yakindu::python {
 	const PROJECT : string = "StartingPoint"
 	const FOLDER : string = "srcgen"
 
+	statechart A {
+		feature Outlet {
+			targetProject = PROJECT
+			targetFolder = FOLDER
+			libraryTargetFolder = "lib"
+		}
+	}
+
+	statechart B {
+		feature Outlet {
+			targetProject = PROJECT
+			targetFolder = FOLDER
+			libraryTargetFolder = "lib"
+		}
+	}
+
+	statechart C {
+		feature Outlet {
+			targetProject = PROJECT
+			targetFolder = FOLDER
+			libraryTargetFolder = "lib"
+		}
+	}
+
+	statechart D {
+		feature Outlet {
+			targetProject = PROJECT
+			targetFolder = FOLDER
+			libraryTargetFolder = "lib"
+		}
+	}
+
+	statechart E {
+		feature Outlet {
+			targetProject = PROJECT
+			targetFolder = FOLDER
+			libraryTargetFolder = "lib"
+		}
+	}
+
+
+
 	statechart LockController {
 		feature Outlet {
 			targetProject = PROJECT
