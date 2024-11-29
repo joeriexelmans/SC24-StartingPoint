@@ -215,4 +215,4 @@ class GUI:
         self.var_sensor_status.set("FAILURE DETECTED")
 
     def time_changed(self, simtime):
-        self.var_simtime.set(pretty_time(simtime))
+        self.var_simtime.set(f'{simtime / 1000000000:.3f}')
