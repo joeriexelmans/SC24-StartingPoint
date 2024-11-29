@@ -29,9 +29,9 @@ Files related to the assignment:
 When running the GUI, you can pass an additional `time_scale` parameter, as such:
 ```
 cd StartingPoint
-python runner_gui.py 0.5
+python runner_gui.py 0.5 # run simulation at half-speed
+python runner_gui.py 2   # run simulation at double-speed
 ```
-This will run the simulation at half-speed.
 
 ### Background
 
