@@ -4,8 +4,8 @@ import sys
 
 # load generated Statechart code
 from srcgen.water_level_simulator import WaterLevelSimulator
-# from srcgen.lock_controller import LockController
-from srcgen.solution import Solution as LockController # Teacher's solution
+from srcgen.lock_controller import LockController
+# from srcgen.solution import Solution as LockController # Teacher's solution
 
 from lib.yakindu.rx import Observer
 from lib.controller import Controller, pretty_time
