@@ -1,5 +1,6 @@
 import tkinter
 import atexit
+import sys
 
 # load generated Statechart code
 from srcgen.water_level_simulator import WaterLevelSimulator

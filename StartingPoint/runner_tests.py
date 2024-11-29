@@ -1,5 +1,5 @@
 import functools
-from lib.test import run_scenario
+from lib.test import run_scenarios
 
 # from srcgen.lock_controller import LockController
 from srcgen.solution import Solution as LockController # Teacher's solution
@@ -229,12 +229,4 @@ INITIAL = [
 ]
 
 if __name__ == "__main__":
-    ok = True
-    for scenario in SCENARIOS:
-        print(f"Running scenario: {scenario["name"]}")
-        ok = run_scenario(scenario["input_events"], scenario["output_events"], LockController, INITIAL, IDEMPOTENT, verbose=False) and ok
-        print("--------")
-    if ok:
-        print("All scenarios passed.")
-    else:
-        print("Some scenarios failed.")
+    run_scenarios(SCENARIOS, LockController, INITIAL, IDEMPOTENT)

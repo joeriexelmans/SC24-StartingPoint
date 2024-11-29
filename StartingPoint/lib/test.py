@@ -134,3 +134,14 @@ def run_scenario(input_trace, expected_output_trace, statechart_class, INITIAL, 
     elif verbose:
         print_diff()
     return True
+
+def run_scenarios(scenarios, statechart_class, initial, idempotent, verbose=True):
+    ok = True
+    for scenario in scenarios:
+        print(f"Running scenario: {scenario["name"]}")
+        ok = run_scenario(scenario["input_events"], scenario["output_events"], statechart_class, initial, idempotent, verbose=verbose) and ok
+        print("--------")
+    if ok:
+        print("All scenarios passed.")
+    else:
+        print("Some scenarios failed.")
