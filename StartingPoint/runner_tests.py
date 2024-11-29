@@ -229,4 +229,4 @@ INITIAL = [
 ]
 
 if __name__ == "__main__":
-    run_scenarios(SCENARIOS, LockController, INITIAL, IDEMPOTENT)
+    run_scenarios(SCENARIOS, LockController, INITIAL, IDEMPOTENT, verbose=False)

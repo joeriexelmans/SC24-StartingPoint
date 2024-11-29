@@ -114,6 +114,7 @@ class GUI:
         sim_frame.pack(side=tkinter.LEFT)
 
         request_frame = tkinter.LabelFrame(toplevel, text="Actions")
+        self.button_obstruct = tkinter.Button(request_frame, text="Obstruct door", command=lambda: sim.add_input_now(self.sc, "door_obstructed"), width=18).pack()
         self.button_change_lvl = tkinter.Button(request_frame, command=lambda: self.sim.add_input_now(self.sc, "request_lvl_change"), width=18)
         self.button_change_lvl.pack()
         self.button_resume = tkinter.Button(request_frame, text="Resume (make sure sensor is repaired first!)",
@@ -196,7 +197,7 @@ class GUI:
         if value:
             self.button_change_lvl.config(state=tkinter.DISABLED, text="Change requested")
         else:
-            self.button_change_lvl.config(state=tkinter.NORMAL, text="Change water level")
+            self.button_change_lvl.config(state=tkinter.NORMAL, text="Request water lvl change")
 
     def on_water_level_reading(self, water_level):
         # the measured water level - can be nonsense if sensor is broken

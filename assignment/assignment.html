@@ -1,0 +1,490 @@
+<dtml-var simple_html_header>
+  <style>
+    h5 {
+       background: unset !important;
+       border: unset !important;
+       padding: unset !important;
+       text-transform: unset !important;
+       font-weight: bold !important;
+    }
+  </style>
+
+<div class="portlet">
+
+<h2 id="practical-stuff">Practical stuff</h2>
+<ul>
+  <li> <b>Due Date:</b> Thursday 12 December 2024, before 23:59 (Blackboard's clock).</li>
+  <li> <b>Team Size:</b> 2 (pair design/programming)!<br/>
+  <i>Note that as of the 2017-2018 Academic Year, each International student should team up with "local"
+    (i.e., whose Bachelor degree was obtained at the University of Antwerp).</i></li>
+  <li><b>Assignment overview:</b>
+    <ol>
+      <li>Solve exercises</li>
+      <li>Solve assignment, iteratively:
+        <ul>
+          <li>Implement Statechart wrt. requirements</li>
+          <li>Generate Python code from the Statechart</li>
+          <li>Test your solution</li>
+          <ul>
+            <li>Solution should pass given scenarios</li>
+            <li>Implement one extra test sceneario</li>
+          </ul>
+        </ul>
+      </li>
+      <li>Write report</li>
+    </ol>
+  </li>
+
+  <li> <b>Submitting your solution:</b>
+    <ul>
+      <li>
+        <em>Only one</em> member of each team submits a full solution. This must be a ZIP-archive that includes:
+        <ul>
+          <li>Your report (HTML or PDF)</li>
+          <li>All the files needed to run your solution, including the files from the "starting point" that you were not allowed to edit, and your generated Python code</li>
+        </ul>
+      </li>
+      <li>
+        The other team member <em>must</em> submit a single (plain text or HTML) file containing <em>only</em> the names of both team members. This will allow us to put in grades for both team members in BlackBoard.
+      </li>
+    </ul>
+  </li>
+
+  <li> <b>Submission Medium:</b>
+    <a href="http://blackboard.uantwerpen.be">BlackBoard</a>.
+  </li>
+
+  <li> <b>Contact / TA:</b>
+      <a href="mailto:Joeri.Exelmans@uantwerpen.be">Joeri Exelmans</a>.
+  </li>
+</ul>
+
+<h2 id="goals">Goals</h2>
+<p>
+  The goal of this assignment is to familiarize yourself with Statechart modeling, simulation, testing and code generation. We will use <a href="https://www.itemis.com/en/yakindu/state-machine/">itemis CREATE</a> (formerly called &quot;YAKINDU Statechart Tools&quot;).
+</p>
+
+<style>
+  figcaption {
+    font-style: italic;
+  }
+  ol.requirements > li::marker {
+    content: "R" counter(list-item) ". ";
+  }
+  ol.stepped > li::marker {
+    content: "Step " counter(list-item) ": ";
+  }
+  ol.stepped > li {
+    margin-left: 10pt;
+  }
+  .interface {
+    background-color: #faebd2;
+    padding: 2pt;
+    padding-left: 20pt;
+    border-width: 1px;
+    border-color: #000;
+    border-style: solid;
+  }
+  .tip {
+    background-color: #eee;
+    padding: 6pt;
+    border-width: 1px;
+    border-color: #000;
+    border-style: solid;
+    display: inline-block;
+    margin: 4pt;
+  }
+  table {
+    border-collapse: collapse;
+  }
+  table, tr, td, th {
+    border:1px solid black;
+    padding: 4pt;
+  }
+</style>
+
+<h2 id="getting-started">Getting Started</h2>
+<div class="tip">
+  Note: On the university PCs, itemis CREATE is pre-installed, but missing a license file (follow steps below to get a license).
+</div>
+<ol>
+  <li> Download <a href="https://www.itemis.com/en/products/itemis-create/download-options/">itemis CREATE</a>.</li>
+  <li> Get a <a href="https://info.itemis.com/products/itemis-create/academic/order/?utm_referrer=https%3A%2F%2Fwww.itemis.com%2F">free academic license</a> (sign up with your university e-mail).</li>
+  <li> Start itemis CREATE and create a new workspace.</li>
+  <li> Clone the <a href="https://github.com/joeriexelmans/SC24-StartingPoint">StartingPoint git repository</a> into your itemis CREATE workspace, and import it as a project (without copying the files).</li>
+</ol>
+
+<h2 id="exercises">Exercises</h2>
+<p>Before you start working on this assignment, you <b>must</b> solve 5 small exercises. Each exercise shows you a small Statechart model, and asks a question about its behavior. You should include the answers to the exercises in your report.</p>
+<p>The exercises can be found in the <a href="#getting-started">StartingPoint git repository</a>. In the `exercises' directory, you'll find 5 files (A.ysc, B.ysc, ...). Each of them is a Statechart model that you should open in itemis CREATE. Each model includes a question (in a 'comment' element). You must answer this question, and include your answer in your report.</p>
+<figure>
+  <img src="exercise.png"/>
+  <figcaption>Example: one of the exercises</figcaption>
+</figure>
+<p>Feel free to run the models in itemis CREATE.</p>
+<p>There also exists a test script (exercises_test.py) that runs all of the examples with a fixed sequence of input events, and checks if the expected output events occur. To run this script, you must first generate Python code: in itemis right-click on PythonGenerator.sgen, Generate Code Artifacts). Also have a look at the source code of the script. You will test your solution to the assignment in a similar fashion.</p>
+
+<div class="tip">
+  To solve the exercises, you <b>must have a good understanding of the precise semantics of itemis CREATE</b>.
+  The semantics are as follows:
+  <ul>
+    <li>The execution of a Statechart is a sequence of Run-To-Completion (RTC) steps</li>
+    <li>An RTC-step can only triggered by:</li>
+    <ul>
+      <li>An input event</li>
+      <li>A timer that elapses (actually, an elapsing timer generates an input event behind the scenes)</li>
+    </ul>
+    <li>An RTC-step is instanteneous: it takes zero time.</li>
+    <li>In between RTC-steps, the Statechart is idle (it will not change its state), and time may pass.</li>
+    <li>An RTC-step consists of one or more fair-steps:</li>
+    <ul>
+      <li>During the first fair-step, only the input event that triggered the RTC-step is active.</li>
+      <li>During a fair-step, orthogonal regions are visited left-to-right, or top-to-bottom:
+        <ul>
+          <li>Within one fair step, every (orthogonal / non-overlapping) region is allowed to fire at most one transition. A region will fire a transition only if it has an enabled transition (wrt. the currently active event, and the transition's guard condition).</li>
+          <ul>
+            <li>When a transition fires: first, all the exit actions of all the exited states are executed (in order: child to parent), then the action of the transition itself, followed by the enter actions of the entered states (in order: parent to child)
+              <figure>
+                <img src="enter-exit.png"/>
+                <figcaption>In this example, when firing the transition from A to F, first the exit actions of A, B, and C are executed, then the actions of the transition itself, and finally the enter actions of D, E and F (in that order).</figcaption>
+              </figure>
+            </li>
+            <li>Any internal events that are raised (as a result of firing transitions), are added to the internal event (FIFO) queue.</li>
+          </ul>
+        </ul>
+      </li>
+      <li>When a fair-step has completed:
+        <ul>
+          <li>if the internal event (FIFO) queue is not empty, then a new fair-step starts. The next event is popped from the queue, and it becomes the new active event.</li>
+          <li>if the internal event queue is empty, then no more fair-steps are executed, and the RTC-step ends.</li>
+        </ul>
+      </li>
+    </ul>
+  </ul>
+  <p><b>Example:</b>
+    Consider the following Statechart in the figure below.
+    After initialization, the current states are: OrthogonalState, A, C, E.
+    Then, the Statechart remains idle until it receives an input event. Suppose at time T=5s, the input event <em>e</em> is received. This triggers the execution of an RTC step.
+    The RTC step starts with a fair-step, where regions <em>r1</em>, <em>r2</em> and <em>r3</em> (in that order) are allowed to fire at most one transition each.
+    Only <em>r1</em> has an enabled transition (because event <em>e</em> is active), so only <em>r1</em> fires.
+    During the firing of that transition, the internal event <em>f</em> is raised, an appended to the internal event queue.
+    The fair-step ends, and one more fair-step is executed, because the internal event queue is not empty.
+    So again, <em>r1</em>, <em>r2</em> and <em>r3</em> are allowed to fire at most one transition.
+    This time, the regions <em>r2</em> and <em>r3</em> will fire, because event <em>f</em> is active.
+    The second fair-step ends, and since the internal event queue is empty, the RTC step also ends.
+    Even though all transitions fired in a certain order, all of it happened at the same point in (simulated) time.
+    Now, the Statechart will again remain idle until another input event occurs.
+    <figure>
+      <img src="semantics-example.png"/>
+      <table>
+        <tr><th>Time</th><th></th>                                  <th></th>                             <th><em>r1</em></th>                                         <th><em>r2</em></th>      <th><em>r3</em></th>       </tr>
+        <tr><td>=0</td><td>Initialization</td>              <td></td>                             <td>enter <em>A</em></td>                                    <td>enter <em>C</em></td> <td>enter <em>E</em></td>  </tr>
+        <tr><td>>0 &amp;&amp; <5s</td><td>Idle</td>              </tr>
+        <tr><td>=5s</td><td>RTC step (input=<em>e</em>)</td> <td>Fair-step (event=<em>e</em>)</td> <td>fire (exit <em>A</em>, raise <em>f</em>, enter <em>B</em>)</td> <td></td>                 <td></td>                  </tr>
+        <tr><td></td><td>                           </td> <td>Fair-step (event=<em>f</em>)</td> <td>                                                         <td>fire (exit <em>C</em>, enter <em>D)</em></td>  <td>fire (exit <em>E</em>, enter <em>F</em>)</td></tr>
+        <tr><td>=5s</td><td>End of RTC step</td></tr>
+      </table>
+    </figure>
+  </p>
+  Please remember that these precise semantics are specific to itemis CREATE. Other Statechart tools (e.g., STATEMATE, Rhapsody, StateFlow) have different semantics.
+</div>
+
+<h2>Attention!</h2>
+<p>Once you've completed the exercises, you'll probably understand that if you ensure that your transitions always have an event trigger or after-trigger, you have much more control over when your transition will fire, resulting in a solution that is more likely correct and understandable.</p>
+
+<p>Therefore, <b>ensure that every transition always has either an event trigger, or an after-trigger</b>. <b>Never</b> use the following triggers:
+  <ul>
+    <li>after 0 s (can give strange behavior)</li>
+    <li>after 1 ms (unless of course you really want to wait 1ms)</li>
+    <li>always</li>
+    <li>every X s</li>
+    <li>(no trigger)</li>
+  </ul>
+  Instead, you should probably use an internal event, or the choice-element. <b style="color:red">Every time you violate this rule, 5% will be subtracted from your grade on this assignment.</b>
+</p>
+
+<h2>Introduction to Assignment</h2>
+<p>You will use the Statecharts formalism to model the software controller of a waterway lock. The lock connects two waterway segments with different water levels, and allows watercraft to safely navigate from one segment to another. We will assume that the water level on each side is constant (so there are no tides, like we have on the river Scheldt in Antwerp).</p>
+
+<figure>
+  <img src="KieldrechtLock.jpg"/>
+  <figcaption>The Kieldrecht lock, in the Port of Antwerp. Currently (2024), the largest lock in the world.</figcaption>
+</figure>
+
+<p>When the lock's water level is equal to the water level on one of its sides, the doors on that side may be safely opened. There is also a traffic light on each side, indicating whether watercraft is allowed to enter the lock. Every lock door also has a valve to let water flow from/to either side, to increase/decrease the water level in the chamber.</p>
+
+<figure>
+  <video muted controls>
+    <source src="recording.webm" type="video/webm"/>
+  </video>
+  <figcaption>Our simulated lock.</figcaption>
+</figure>
+
+<p>In order to detect when altering the water level in the chamber has completed, the chamber is equipped with a water level sensor. However, this sensor is imperfect, and its data is <i>noisy</i>: the data can be understood as the hypothetical "perfect signal" with a small random error added to it. We will have to work around this issue. Furthermore, the sensor is known to break sometimes, outputting nonsense. We will also have to detect when the sensor breaks, and pause all operations until the sensor has been repaired.</p>
+
+<h2>Interfaces</h2>
+<figure>
+  <img src="controller-plant-environment.png"/>
+  <figcaption>Overview of the system and its environment.</figcaption>
+</figure>
+<p>The controller is to be implemented as a Statechart, and therefore can only interact with the plant and the environment through discrete input and output events.</p>
+
+<h3>Plant interface</h3>
+<table>
+  <tr>
+    <th>Input event</th><th>Received when...</th>
+  </tr>
+  <tr>
+    <td>waterLvl(integer)</td>
+    <td>Happens when the water level sensor has a new reading. The integer parameter contains the measured water level, in centimeters.
+  </tr>
+  <tr>
+    <td>doorObstructed</td>
+    <td>Raised when any of the lock doors that are currently open, is obstructed (e.g., because a ship is passing through)</td>
+  </tr>
+</table>
+<br/>
+
+<!-- <div class="tip">
+  Note: When testing your Statechart in YAKINDU (either through unit testing or interactive simulation),
+  the <b>waterLvl</b> event, like all other input events, will not be automatically raised.
+  You will have to raise it at certain (crucial) times (but not every 20ms, because that's not realistic),
+  and specify a realistic parameter value for it.
+</div>
+ -->
+<table>
+  <tr>
+    <th>Output event</th><th>Effect</th>
+  </tr>
+  <tr>
+    <td>openDoors(integer)</td>
+    <td>Opens the lock doors on one side.</td>
+  </tr>
+  <tr>
+    <td>closeDoors(integer)</td>
+    <td>Closes the lock doors on one side.</td>
+  </tr>
+  <tr>
+    <td>openFlow(integer)</td>
+    <td>Opens the flow valve on one side.</td>
+  </tr>
+  <tr>
+    <td>closeFlow(integer)</td>
+    <td>Closes the flow valve on one side.</td>
+  </tr>
+  <tr>
+    <td>greenLight(integer)</td>
+    <td>Sets the traffic light to green on one side.</td>
+  </tr>
+  <tr>
+    <td>redLight(integer)</td>
+    <td>Sets the traffic light to red on one side.</td>
+  </tr>
+</table>
+
+<div class="tip">
+  Note: The integer parameter for the events <b>openDoors</b>, <b>closeDoors</b>, <b>openFlow</b>, <b>closeFlow</b>, <b>greenLight</b> and <b>redLight</b> indicates the side of the lock this action should apply to. Allowed values are 0 (the LOW water side) and 1 (the HIGH water side). In the Statechart interface, the integer constants LOW and HIGH have been declared, so you can (and should) use these, instead of the values 0 and 1.
+</div>
+
+<h3>Environment interface</h3>
+<table>
+  <tr>
+    <th>Input event</th><th>Received when...</th>
+  </tr>
+  <tr>
+    <td>requestWaterLvlChange</td>
+    <td>Happens when a water level change is requested, e.g., by a lock operator.</td>
+  </tr>
+  <tr>
+    <td>resume</td>
+    <td>After having detected a broken water level sensor, this event indicates that the water level sensor has been repaired, and normal operation can be resumed.</td>
+  </tr>
+</table>
+<br />
+<table>
+  <tr>
+    <th>Output event</th><th>Effect</th>
+  </tr>
+  <tr>
+    <td>setSensorBroken</td>
+    <td>Notifies the "environment" that a broken water level sensor has been detected. This event may be used to automatically contact a repair(wo)man.
+    <br/>
+    <br/>
+    In the Python GUI, this event enables the "RESUME" button.</td>
+  </tr>
+  <tr>
+    <td>setRequestPending(boolean)</td>
+    <td>Notifies the "environment" that a new "water level change request" is has been accepted (if the boolean parameter is "true"), or that handling the current "water level change request" has completed (if the boolean parameter is "false").
+    <br/>
+    <br/>
+    In the Python GUI, this event enables or disables the "Change water level" button.</td>
+  </tr>
+</table>
+
+<h2>Behavioral Requirements</h2>
+<ol start="0" class="requirements">
+  <li>Initially, the water level in the lock is LOW. Then, the controller immediately opens the door on the LOW side, and sets its traffic light to green, and waits for a water level change request (<tt>requestWaterLvlChange</tt>).</li>
+
+  <li>When a water level change request happens, the following steps happen, in fixed order:
+    <ol start="0" class="stepped">
+      <li>The light on the side of the open door immediately turns to RED, but the door does not yet close.</li>
+      <li>After the light has turned to RED, and if the door has been unobstructed for 2 seconds, the door may close. For instance, if the light turns to RED at time T, and at time T+1s the door is obstructed, then the door may close at time T+3s.</li>
+      <li id="step2">Immediately after the door closes, the flow valve on the opposite side it opened, and the water level starts to change.</li>
+      <li>When the water level sensor reads a level that is within 30 cm of the target level, we know that we are &quot;nearly there&quot;, and we leave the flow valve open for <em>one more second</em>, then close it, and immediately open the door at that side, and set the traffic light on that to GREEN.</li>
+      <div class="tip">
+        Note: The reason for detecting if we are "nearly there", is because the data from the water level sensor is <i>noisy</i>. We therefore allow a certain margin of error.
+      </div>
+    </ol>
+  </li>
+
+  <li>Water level change requests can happen at any point in time. Whenever a water level change request has been received, the controller must notify its environment that this request has been received, with the event "setRequestPending(true)" (see also next section). When a water level change has completed, again the controller must notify its environment with the event "setRequestPending(false)", to indicate that it is ready to take another request.</li>
+
+  <li>The water level sensor may break at any time, and this must always be detected. The sensor is considered to have failed when a large enough discontinuity, of more than 1000 cm (positive or negative) in its output occurs, compared to the previous value of the sensor.</li>
+
+  <li>When a water level sensor failure is detected, it must be responded to by:
+    <ol start="0">
+      <li>Going immediately to the "emergency mode" (explained below).</li>
+      <li>Outputting a "setSensorBroken" event (explained in next section).</li>
+    </ol>
+  </li>
+
+  <li>In the "emergency mode", all lock doors and all flow valves are immediately closed and remain closed, and likewise all traffic lights are set to RED and stay RED. We remain in this mode until someone manually hits the 'RESUME' button. (You can assume that the RESUME button will only be pressed after the water level sensor has been fixed.)</li>
+
+  <li>While in the "emergency mode", the controller can still take water level change requests, but they cannot be completed until the "emergency mode" ends.</li>
+
+  <li>The RESUME button ends the "emergency mode", resuming normal operations:
+    <ul>
+      <li>If a water level change has been requested (either before or during the emergency mode), which has not been fully completed yet, the lock doors remain shut, and the flow opens on the right side (immediately going to <a href="#step2">Step 2</a> of water level change procedure).</li>
+      <li>Otherwise, the doors open on the side where they were open, the light turns to GREEN on that side, and we wait for a request.</li>
+    </ul>
+  </li>
+</ol>
+
+<h2>Testing your solution</h2>
+There are three ways you can test your solution:
+<ul>
+  <li><b>Use itemis' debugger.</b> This allows you to see your model execute in real-time. You can observe which states are active, and which transitions are being made. You can manually raise input events and observe raised output events.
+    <figure>
+      <img src="debug-itemis.png"/>
+    </figure>
+  </li>
+  <li><s><b>itemis testing framework</b>: allows for white-box and black-box automated as-fast-as-possible testing, by writing scripts that raise timed input events, and assertions on expected output events.</s><br/>
+    We recommend against using the Itemis CREATE testing framework, as explained <a href="#why-not-yakindu-testing">at the end of this page</a>.</li>
+
+  <li><b>Generate code and run the GUI</b> (<tt>runner_gui.py</tt>). Here you can see how your model interacts with the &quot;real&quot; system. Input and output events are logged to terminal. You cannot see which states are active, or transitions are made. Upon exiting, a complete trace of all input/output events that occured, will be printed to the terminal.
+    <figure>
+      <img style="border: 1px solid #000; width: 300px;" src="gui.png"/>
+      <figcaption>Screenshot of GUI</figcaption>
+    </figure>
+  </li>
+
+  <li><b>Generate code and run the test script</b> (<tt>runner_tests.py</tt>).
+         This script will run (the generated code from) your model, but in a non-interactive manner (as opposed to the GUI), and as-fast-as-possible (as opposed to the GUI, which runs in real-time).
+         <br/><br/>
+         The test script contains 3 hard-coded test scenarios, which you are <b>not allowed to alter</b>, and which your model <b>must pass</b>.
+         Each scenario specifies a sequence of timed input events, which the test runner will give to your model as inputs, and an &quot;expected&quot; sequence of timed output events, which it expects from your model.
+         A test scenario passes if the model's &quot;actual&quot; sequence of output events matches the expected sequence.
+<!--          <div class="tip">
+          Note: The actual and expected sequences of output events do not have to match exactly.
+          For instance, raising the output event <tt>openDoors:0</tt> three times in a row has the same effect as raising it once (because of <a href="https://en.wikipedia.org/wiki/Idempotence">idempotence</a>).
+          The comparison algorithm takes this into account, removing duplicated idempotent events, turning traces into a <a href="https://en.wikipedia.org/wiki/Canonical_form">canonical form</a>.
+         </div>
+ -->
+    <figure>
+      <img style="border: 1px solid #000;" src="test.png"/>
+      <figcaption>Screenshot of test runner</figcaption>
+    </figure>
+    Further, you <b>must add one extra scenario</b> to this file. This scenario should test a requirement that is not yet covered by the existing tests. Please do not blindly copy an input/output trace that was generated by the GUI. If you do use the GUI to generate a trace, read it, and add comments to it that explain what goes on (similar to the existing scenarios).
+  </li>
+</ul>
+
+<h3>Overview of different testing approaches</h3>
+<table>
+  <tr>
+    <th></th>
+    <th>itemis debugger</th>
+    <th>Python GUI</th>
+    <th>Python test runner</th>
+  </tr>
+  <tr>
+    <td>white box<br/>(e.g., can see what are the current states?)</td>
+    <td>yes</td>
+    <td>no</td>
+    <td>no</td>
+  </tr>
+  <tr>
+    <td>interactive or automated?</td>
+    <td>interactive (real-time)</td>
+    <td>interactive (real-time)</td>
+    <td>automated (as-fast-as-possible)</td>
+  </tr>
+  <tr>
+    <td>returns</td>
+    <td>nothing</td>
+    <td>execution trace</td>
+    <td>pass or fail (+diff)</td>
+  </tr>
+</table>
+
+
+<h2>Report</h2>
+<p>You are also <b>required</b> to write a small (HTML or PDF) report.</p>
+<p>It must include the following:</p>
+<ul>
+  <li>The <b>names and student IDs</b> of the team members</li>
+  <li>The amount of <b>time spent</b> working on the project: Please be honest, this helps us estimate the workload for future assignments.</li>
+  <li>Your answers to the exercises (A to E).</li>
+  <li>Your <em>workflow</em>: How did you work together? (pair programming / divided the work / ...) In what order did you implement different features? Encountered any difficulties?
+  <li>An <em>overview of your final solution</em> (but please do not describe every tiny detail!)
+  <li>The extra test scenario you added: why this scenario, what requirements does it cover, ...</li>
+</ul>
+<p>Include screenshots where appropriate: <i>A picture is worth a thousand words!</i></p>
+
+
+<h2>What is expected</h2>
+<p>Your solution needs to be <b>precisely</b> correct: superficially correct behavior when running the generated code with the GUI (e.g., seeing the water levels change) is <b>not enough</b>: the timing-related requirements are <b>exact</b>. Hence the role of the automated tests.</p>
+<p>The assignment has been designed specifically to encourage use of as many Statechart features as possible:</p>
+<ul>
+  <li>composite states</li>
+  <li>orthogonal states</li>
+  <li>timed transitions</li>
+  <li>guard conditions</li>
+  <li>transition actions</li>
+  <li>enter/exit actions</li>
+  <li>internal variables</li>
+  <li>internal events</li>
+  <li>(history)</li>
+</ul>
+<p>Make sure you understand these features, and use them, where you think they are appropriate.</p>
+<p>To give you an indication of the complexity, my own solution consists of 12 states (not counting &quot;regions&quot;) and 10 transitions.</p>
+
+
+<h2 id="antipattern">Anti-pattern: implementing your own &quot;timer&quot; (don't do this!)</h2>
+<p>Every year, I see some students implementing some variation of the following:</p>
+<figure>
+  <img style="border: 1px solid #000;" src="antipattern-timer.png"/>
+  <!--<figcaption>Anti-pattern: Implementing your own timer</figcaption>-->
+</figure>
+<p>instead of just creating a transition from <em>A</em> to <em>B</em> labeled <em>after 2s</em>. This serves no purpose whatsoever. It is unnecessarily complex, and the generated code will be less performant. Don't do this!</p> 
+
+
+<h2>Additional resources</h2>
+<ul>
+  <li>Microwave examples: <a href="https://github.com/joeriexelmans/itemis-examples"/>https://github.com/joeriexelmans/itemis-examples</a></li>
+
+  <li>itemis CREATE <a href="https://www.itemis.com/en/yakindu/state-machine/documentation/">official documentation</a></li>
+
+  <li>
+    Recording of an older YAKINDU tutorial (from August 2022): Recording (<a href="2ndterm-tutorial.mp4">2ndterm-tutorial.mp4</a>) and the project files (<a href="2ndterm-trafficlight-example-project.zip">2ndterm-trafficlight-example-project.zip</a>).
+  </li>
+</ul>
+
+<h2 id="why-not-yakindu-testing">Why we don't use itemis CREATE's builtin testing framework</h2>
+<ul>
+  <li>If a test case fails, you only see the line of code containing the failed assertion (not even a stack trace, making it difficult to figure out the context of the failure).</li>
+  <li>No ability to view an input/output trace, which is of didactic importance.</li>
+  <li>Output events are not instantaneous. Instead, they remain active until the next RTC step occurs (this is <u>wrong</u>).</li>
+</ul>
+
+</div>
+<dtml-var standard_html_footer>

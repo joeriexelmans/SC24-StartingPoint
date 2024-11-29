@@ -41,7 +41,6 @@ class LockController:
 		self.water_lvl_value = None
 		self.resume = None
 		self.door_obstructed = None
-		self.door_obstructed_value = None
 		self.set_request_pending = None
 		self.set_request_pending_value = None
 		self.set_request_pending_observable = Observable()
@@ -174,17 +173,16 @@ class LockController:
 		"""
 		self.resume = True
 	
-	def raise_door_obstructed(self, value):
+	def raise_door_obstructed(self):
 		"""Raise method for event door_obstructed.
 		"""
-		self.in_event_queue.put(lambda: self.__raise_door_obstructed_call(value))
+		self.in_event_queue.put(self.__raise_door_obstructed_call)
 		self.run_cycle()
 	
-	def __raise_door_obstructed_call(self, value):
+	def __raise_door_obstructed_call(self):
 		"""Raise callback for event door_obstructed.
 		"""
 		self.door_obstructed = True
-		self.door_obstructed_value = value
 	
 	def __entry_action_main_region_o_r1_a(self):
 		"""Entry action for state 'A'..
