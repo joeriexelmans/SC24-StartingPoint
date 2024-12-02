@@ -1,42 +1,54 @@
+import abc
 from difflib import ndiff
 
 from lib.controller import Controller, pretty_time
 from lib.tracer import Tracer
 from lib.yakindu_helpers import YakinduTimerServiceAdapter, trace_output_events
 
-# Can we ignore event in 'trace' at position 'idx' with respect to idempotency?
-def can_ignore(trace, idx, IDEMPOTENT):
-    (timestamp, event_name, value) = trace[idx]
-    if event_name in IDEMPOTENT:
-        # If the same event occurred earlier, with the same parameter value, then this event can be ignored:
-        for (earlier_timestamp, earlier_event_name, earlier_value) in reversed(trace[0:idx]):
-            if (earlier_event_name, earlier_value) == (event_name, value):
-                # same event name and same parameter value (timestamps allowed to differ)
-                return True
-            elif event_name == earlier_event_name:
-                # same event name, but different parameter value:
-                # stop looking into the past:
-                break
-        # If the same event occurs later event, but with the same timestamp, this event is overwritten and can be ignored:
-        for (later_timestamp, later_event_name, later_value) in trace[idx+1:]:
-            if (later_timestamp, later_event_name) == (timestamp, event_name):
-                # if a later event with same name and timestamp occurs, ours will be overwritten:
-                return True
-            if later_timestamp != timestamp:
-                # no need to look further into the future:
-                break
-    return False
+class AbstractEnvironmentState:
+    # should return the new state after handling the event
+    @abc.abstractmethod
+    def handle_event(self, event_name, param):
+        pass
+    # should compare states *by value*
+    @abc.abstractmethod
+    def __eq__(self, other):
+        pass
 
-def postprocess_trace(trace, INITIAL, IDEMPOTENT):
-    # Prepend trace with events that set assumed initial state:
-    result = [(0, event_name, value) for (event_name, value) in INITIAL] + trace
+# # Can we ignore event in 'trace' at position 'idx' with respect to idempotency?
+# def can_ignore(trace, idx):
+#     (timestamp, event_name, value) = trace[idx]
+#     if event_name in IDEMPOTENT:
+#         # If the same event occurred earlier, with the same parameter value, then this event can be ignored:
+#         for (earlier_timestamp, earlier_event_name, earlier_value) in reversed(trace[0:idx]):
+#             if (earlier_event_name, earlier_value) == (event_name, value):
+#                 # same event name and same parameter value (timestamps allowed to differ)
+#                 return True
+#             elif event_name == earlier_event_name:
+#                 # same event name, but different parameter value:
+#                 # stop looking into the past:
+#                 break
+#         # If the same event occurs later event, but with the same timestamp, this event is overwritten and can be ignored:
+#         for (later_timestamp, later_event_name, later_value) in trace[idx+1:]:
+#             if (later_timestamp, later_event_name) == (timestamp, event_name):
+#                 # if a later event with same name and timestamp occurs, ours will be overwritten:
+#                 return True
+#             if later_timestamp != timestamp:
+#                 # no need to look further into the future:
+#                 break
+#     return False
+
+def postprocess_trace(trace, environment_class):
+    env_state = environment_class()
+    filtered_trace = []
     # Remove events that have no effect:
-    while True:
-        filtered = [tup for (idx, tup) in enumerate(result) if not can_ignore(result, idx, IDEMPOTENT)]
-        # Keep on filtering until no more events could be removed:
-        if len(filtered) == len(result):
-            return filtered
-        result = filtered
+    for timestamp, event_name, param in trace:
+        new_env_state = env_state.handle_event(event_name, param)
+        if new_env_state != env_state:
+            # event had an effect
+            filtered_trace.append((timestamp, event_name, param))
+        env_state = new_env_state
+    return filtered_trace
 
 def compare_traces(expected, actual):
     i = 0
@@ -56,7 +68,7 @@ def compare_traces(expected, actual):
     print("Traces match.")
     return True
 
-def run_scenario(input_trace, expected_output_trace, statechart_class, INITIAL, IDEMPOTENT, verbose=False):
+def run_scenario(input_trace, expected_output_trace, statechart_class, environment_class, verbose=False):
     controller = Controller()
     sc = statechart_class()
     tracer = Tracer(verbose=False)
@@ -81,11 +93,8 @@ def run_scenario(input_trace, expected_output_trace, statechart_class, INITIAL, 
 
     actual_output_trace = tracer.output_events
 
-    clean_expected = postprocess_trace(expected_output_trace, INITIAL, IDEMPOTENT)
-    clean_actual   = postprocess_trace(actual_output_trace, INITIAL, IDEMPOTENT)
-
-    # clean_expected = expected_output_trace
-    # clean_actual   = actual_output_trace
+    clean_expected = postprocess_trace(expected_output_trace, environment_class)
+    clean_actual   = postprocess_trace(actual_output_trace, environment_class)
 
     def print_diff():
         # The diff printed will be a diff of the 'raw' traces, not of the cleaned up traces
@@ -128,6 +137,7 @@ def run_scenario(input_trace, expected_output_trace, statechart_class, INITIAL, 
             print("\n\"Useless events\" are ignored by the comparison algorithm, and will never cause your test to fail. In this assignment, your solution is allowed to contain useless events.")
 
     if not compare_traces(clean_expected, clean_actual):
+        # even though we compared the 'normalized' traces, we print the *raw* traces, not to confuse the user!
         print("Raw diff between expected and actual output event trace:")
         print_diff()
         return False
@@ -135,11 +145,11 @@ def run_scenario(input_trace, expected_output_trace, statechart_class, INITIAL, 
         print_diff()
     return True
 
-def run_scenarios(scenarios, statechart_class, initial, idempotent, verbose=True):
+def run_scenarios(scenarios, statechart_class, environment_class, verbose=True):
     ok = True
     for scenario in scenarios:
         print(f"Running scenario: {scenario["name"]}")
-        ok = run_scenario(scenario["input_events"], scenario["output_events"], statechart_class, initial, idempotent, verbose=verbose) and ok
+        ok = run_scenario(scenario["input_events"], scenario["output_events"], statechart_class, environment_class, verbose=verbose) and ok
         print("--------")
     if ok:
         print("All scenarios passed.")

@@ -1,5 +1,6 @@
 import functools
-from lib.test import run_scenarios
+import dataclasses
+from lib.test import run_scenarios, AbstractEnvironmentState
 
 from srcgen.lock_controller import LockController
 # from srcgen.solution import Solution as LockController # Teacher's solution
@@ -206,27 +207,72 @@ SCENARIOS = [
 }
 ]
 
-# The following output events are safe to repeat: (with same value)
-# This will be taken into account while comparing traces.
-# Do not change this:
-IDEMPOTENT = [
-    "open_doors",
-    "close_doors",
-    "red_light",
-    "green_light",
-    "set_request_pending",
-    "open_flow",
-    "close_flow",
-]
-# We pretend that initially, these events occur:
-# Do not change this:
-INITIAL = [
-    ("open_doors", 0),
-    ("close_doors", 1),
-    ("green_light", 0),
-    ("red_light", 1),
-    ("set_request_pending", False)
-]
+LOW = 0
+HIGH = 1
+
+# Simulated state of the 'plant'.
+# This is used for checking whether an event has any effect wrt. idempotency
+@dataclasses.dataclass
+class PlantState(AbstractEnvironmentState):
+    # initial state of the plant
+    door_low_open: bool = False
+    door_high_open: bool = False
+    flow_low_open: bool = False
+    flow_high_open: bool = False
+    light_low: str = "RED"
+    light_high: str = "RED"
+    request_is_pending: bool = False
+    sensor_is_broken: bool = False
+
+    def handle_event(self, event_name, param):
+        if event_name == "open_doors":
+            if param == LOW:
+                return dataclasses.replace(self, door_low_open=True)
+            elif param == HIGH:
+                return dataclasses.replace(self, door_high_open=True)
+            else:
+                raise Exception(f"invalid param for event '{event_name}': {param}")
+        elif event_name == "close_doors":
+            if param == LOW:
+                return dataclasses.replace(self, door_low_open=False)
+            elif param == HIGH:
+                return dataclasses.replace(self, door_high_open=False)
+            else:
+                raise Exception(f"invalid param for event '{event_name}': {param}")
+        elif event_name == "open_flow":
+            if param == LOW:
+                return dataclasses.replace(self, flow_low_open=True)
+            elif param == HIGH:
+                return dataclasses.replace(self, flow_high_open=True)
+            else:
+                raise Exception(f"invalid param for event '{event_name}': {param}")
+        elif event_name == "close_flow":
+            if param == LOW:
+                return dataclasses.replace(self, flow_low_open=False)
+            elif param == HIGH:
+                return dataclasses.replace(self, flow_high_open=False)
+            else:
+                raise Exception(f"invalid param for event '{event_name}': {param}")
+        elif event_name == "green_light":
+            if param == LOW:
+                return dataclasses.replace(self, light_low="GREEN")
+            elif param == HIGH:
+                return dataclasses.replace(self, light_high="GREEN")
+            else:
+                raise Exception(f"invalid param for event '{event_name}': {param}")
+        elif event_name == "red_light":
+            if param == LOW:
+                return dataclasses.replace(self, light_low="RED")
+            elif param == HIGH:
+                return dataclasses.replace(self, light_high="RED")
+            else:
+                raise Exception(f"invalid param for event '{event_name}': {param}")
+        elif event_name == "set_request_pending":
+            return dataclasses.replace(self, request_is_pending=param)
+        elif event_name == "set_sensor_broken":
+            return dataclasses.replace(self, sensor_is_broken=param)
+        else:
+            raise Exception("don't know how to handle event:", event_name)
 
 if __name__ == "__main__":
-    run_scenarios(SCENARIOS, LockController, INITIAL, IDEMPOTENT, verbose=False)
+    run_scenarios(SCENARIOS, LockController, PlantState, verbose=False)
